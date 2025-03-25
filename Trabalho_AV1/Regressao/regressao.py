@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 # Carregar dados
 data = np.loadtxt("atividade_enzimatica.csv", delimiter=',')
 
-X = data[:, :2]  # Temperatura e pH
-y = data[:, 2:]  # Nível de atividade enzimática
+X = data[:, :2]  # Temperatura e pH (variáveis independentes)
+y = data[:, 2:]  # Nível de atividade enzimática 
 N, p = X.shape
 
 # Visualização inicial
@@ -24,21 +24,22 @@ particionamento = 0.8
 
 modelo_media = []
 modelo_mqo = []
+modelo_tikhonov = {l: [] for l in [0, 0.25, 0.5, 0.75, 1]}
 
 for r in range(rodadas):
-    # Embaralhar os dados
     idx = np.random.permutation(N)
-    Xr = X[idx, :]
-    yr = y[idx, :]
+    Xr, yr = X[idx, :], y[idx, :] 
 
-    # Particionar os dados (80% treino, 20% teste)
     split = int(N * particionamento)
     X_treino, y_treino = Xr[:split, :], yr[:split, :]
     X_teste, y_teste = Xr[split:, :], yr[split:, :]
 
+
     # Modelo da Média dos valores observáveis
-    beta_media = np.mean(y_treino)  # Apenas a média, sem matriz
-    y_pred_media = np.full(y_teste.shape, beta_media)  # Preenche com o valor médio
+    beta_media = np.mean(y_treino, axis=0)  # Mantém formato correto (1,1)
+    y_pred_media = np.full(y_teste.shape, beta_media)  # Mantém y_pred_media como matriz (N,1)
+
+    # Cálculo do RSS para o modelo da Média
     modelo_media.append(np.sum((y_teste - y_pred_media) ** 2))
 
     # MQO Tradicional
@@ -47,29 +48,37 @@ for r in range(rodadas):
     X_teste = np.hstack((np.ones((X_teste.shape[0], 1)), X_teste))
     beta_mqo = np.linalg.pinv(X_treino.T @ X_treino) @ X_treino.T @ y_treino
     y_pred_mqo = X_teste @ beta_mqo
+
+    # Cálculo do RSS para o MQO Tradicional
     modelo_mqo.append(np.sum((y_teste - y_pred_mqo) ** 2))
 
-# Função para calcular métricas
-def calcular_metricas(modelo):
-    return np.mean(modelo), np.std(modelo), np.max(modelo), np.min(modelo)
+    # MQO Regularizado (Tikhonov)
+    I = np.eye(p + 1)
+    I[0, 0] = 0  # Não penalizar o intercepto
+    for l in modelo_tikhonov.keys():
+        beta_tikhonov = np.linalg.pinv(X_treino.T @ X_treino + l * I) @ X_treino.T @ y_treino
+        y_pred_tikhonov = X_teste @ beta_tikhonov
 
-# Exibir os resultados no console
-print("\nResultados:")
-print(f"{'Modelo':<20}{'Média RSS':<15}{'Desvio-Padrão':<15}{'Maior Valor':<15}{'Menor Valor'}")
-print("=" * 70)
+        # Cálculo do RSS para o MQO Regularizado (Tikhonov)
+        modelo_tikhonov[l].append(np.sum((y_teste - y_pred_tikhonov) ** 2))
 
-metricas = [
-    ("Média", modelo_media),
-    ("MQO", modelo_mqo),
+# Exibição dos resultados
+print("\n Comparação dos Modelos de Regressão\n")
+print(f"{'Modelo':<25}{'Média RSS':<15}{'Desvio-Padrão':<15}{'Maior Valor':<15}{'Menor Valor'}")
+print("=" * 80)
+
+metricas = [("Média", modelo_media), ("MQO", modelo_mqo)] + [
+    (f"Tikhonov λ={l}", modelo_tikhonov[l]) for l in modelo_tikhonov.keys()
 ]
 
 for nome, modelo in metricas:
-    media, std, maior, menor = calcular_metricas(modelo)
-    print(f"{nome:<20}{media:<15.4f}{std:<15.4f}{maior:<15.4f}{menor:.4f}")
+    media, std, maior, menor = np.mean(modelo), np.std(modelo), np.max(modelo), np.min(modelo)
+    print(f"{nome:<25}{media:<15.4f}{std:<15.4f}{maior:<15.4f}{menor:.4f}")
 
 # Boxplot para comparação dos modelos
 plt.figure(figsize=(10, 5))
-plt.boxplot([modelo_media, modelo_mqo], labels=["Média", "MQO"])
+plt.boxplot([modelo_media, modelo_mqo] + list(modelo_tikhonov.values()), 
+            labels=["Média", "MQO"] + [f"Tikhonov λ={l}" for l in modelo_tikhonov.keys()])
 plt.ylabel("RSS")
 plt.title("Comparação dos Modelos")
 plt.show()
