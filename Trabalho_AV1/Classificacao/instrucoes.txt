@@ -1,0 +1,21 @@
+Nada demais, professor! Ignore este arquivo.
+
+# print("Classificação por MQO Tradicional")
+# print(f"Média: {np.mean(W):.2f}") 
+# print(f"Desvio Padrão: {np.std(W):.2f}") 
+# print(f"Valor Máximo: {np.max(W):.2f}") 
+# print(f"Valor Mínimo: {np.min(W):.2f}") 
+
+MQO = {
+    'Média': np.mean(W), # Média
+    'Desvio Padrão': np.std(W), # Desvio Padrão
+    'Valor Máximo': np.max(W), #  Valor máximo
+    'Valor Mínimo': np.min(W) # Valor mínimo
+}
+
+
+plt.figure(2)
+plt.title("Classificação por MQO Tradicional")
+plt.bar(MQO.keys(), MQO.values(), color=['skyblue', 'lightgreen', 'salmon', 'gold', 'k'])
+plt.xlabel("Medidas")
+plt.ylabel("Valor")
