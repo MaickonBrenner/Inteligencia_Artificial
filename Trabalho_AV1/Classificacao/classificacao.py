@@ -43,7 +43,7 @@ Y_bayes = np.zeros((C,N))
 for i in range(N):
     Y_bayes[:,i] = Y[i, :]
 
-rodadas = 1 #500
+rodadas = 500
 particionamento = .8
 lambdas = [0, 0.25, 0.5, 0.75, 1]
 
