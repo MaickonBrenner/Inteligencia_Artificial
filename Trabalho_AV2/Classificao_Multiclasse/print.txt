@@ -1,0 +1,8 @@
+# print("Dimensão de X:", X.shape)
+# print("Primeiras amostras de X:\n", X[:5])
+
+# print("Dimensão de Y após codificação:", Y_cod.shape)
+# print("Primeiras amostras de Y codificado:\n", Y_cod[:5])
+
+# print("Dimensão de X após normalização:", X_normalizado.shape)
+# print("Primeiras amostras de X normalizado:\n", X_normalizado[:5])
