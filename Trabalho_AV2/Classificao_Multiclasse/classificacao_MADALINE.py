@@ -10,6 +10,9 @@ def one_hot_encode(rotulos):
     }
     return np.array([mapeamento[rotulo] for rotulo in rotulos])
 
+def calcular_neuronios_ocultos(entradas, saidas):
+    return int((entradas + saidas))
+
 def calcular_metricas(matriz_confusao):
     total_amostras = np.sum(matriz_confusao)
     acuracia = np.trace(matriz_confusao) / total_amostras if total_amostras > 0 else 0
@@ -48,14 +51,14 @@ class Madaline:
         self.n_entradas = n_entradas
         self.n_ocultos = n_ocultos
         self.taxa_aprendizagem = taxa_aprendizagem
-
+        # Criação dos neurônios Adalines
         self.W_oculta = np.random.randn(n_ocultos, n_entradas + 1)
         self.W_saida = np.random.randn(n_ocultos + 1)
 
-    def _ativacao_oculta(self, x):
+    def tangente(self, x):
         return np.tanh(x)
 
-    def _derivada_tanh(self, x):
+    def tangente_derivada(self, x):
         return 1 - np.tanh(x) ** 2
 
     def treino(self, X, Y, max_epocas=500, precisao=1e-3, plot=False):
@@ -70,7 +73,7 @@ class Madaline:
                 x_i = X_bias[i]
                 y_i = Y[i]
 
-                z_oculta = self._ativacao_oculta(self.W_oculta @ x_i)
+                z_oculta = self.tangente(self.W_oculta @ x_i)
                 z_oculta_bias = np.hstack(([1], z_oculta))
                 y_hat = self.W_saida @ z_oculta_bias
 
@@ -78,7 +81,7 @@ class Madaline:
                 eqm_total += erro ** 2
 
                 grad_saida = erro * z_oculta_bias
-                grad_oculta = erro * self.W_saida[1:] * self._derivada_tanh(self.W_oculta @ x_i)
+                grad_oculta = erro * self.W_saida[1:] * self.tangente_derivada(self.W_oculta @ x_i)
                 self.W_saida += self.taxa_aprendizagem * grad_saida
                 self.W_oculta += self.taxa_aprendizagem * grad_oculta[:, np.newaxis] * x_i
 
@@ -98,7 +101,7 @@ class Madaline:
         saidas = []
         for i in range(N):
             x_i = X_bias[i]
-            z_oculta = self._ativacao_oculta(self.W_oculta @ x_i)
+            z_oculta = self.tangente(self.W_oculta @ x_i)
             z_oculta_bias = np.hstack(([1], z_oculta))
             y_hat = self.W_saida @ z_oculta_bias
             saidas.append(y_hat)

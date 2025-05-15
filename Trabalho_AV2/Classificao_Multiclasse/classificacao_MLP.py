@@ -8,6 +8,11 @@ def sigmoid(x):
 def sigmoid_derivada(x):
     return x * (1 - x)
 
+def calcular_neuronios_ocultos(X, Y):
+    n_entradas = X.shape[1]
+    n_saidas = Y.shape[1] if Y.ndim > 1 else 1
+    return int((n_entradas + n_saidas) / 2)
+
 def one_hot_encode(rotulos):
     mapeamento = {
         0: [1, -1, -1], # Normal
@@ -136,9 +141,11 @@ def main():
         X_treino, Y_treino = X_normalizado[indices_treino], Y_codificado[indices_treino]
         X_teste, Y_teste = X_normalizado[indices_teste], Y_codificado[indices_teste]
 
+        # Definindo quantidade de neurônios da camada oculta
+        n_ocultos = calcular_neuronios_ocultos(X_treino, Y_treino)
 
         # Fase de treinamento e teste
-        mlp = MLP(X.shape[1], 3, 3, taxa_aprendizagem)
+        mlp = MLP(X.shape[1], n_ocultos, 3, taxa_aprendizagem)
         mlp.treino(X_treino, Y_treino, max_epoca, precisao)
         Y_pred = mlp.predizer(X_teste)
 
