@@ -9,19 +9,19 @@ class Adaline:
         self.taxa_aprendizagem = taxa_aprendizagem
         self.precisao = precisao
         self.num_max_epoca = num_max_epoca
-        self.w = np.random.rand(self.p + 1, 1)
+        self.w = np.random.random_sample((self.p + 1, 1))  # inicialização aleatória
         self.plot = plot
 
     def treino(self):
         epoca = 0
-        eqm_ant = float("inf")
-        hist_eqm = []
+        eqm_anterior = float("inf")
+        historico_eqm = []
 
         while epoca < self.num_max_epoca:
-            eqm = self.__EQM()
-            hist_eqm.append(eqm)
+            eqm_atual = self.__EQM()
+            historico_eqm.append(eqm_atual)
 
-            if abs(eqm_ant - eqm) < self.precisao:
+            if abs(eqm_anterior - eqm_atual) < self.precisao:
                 break
 
             for k in range(self.N):
@@ -31,12 +31,12 @@ class Adaline:
                 e_k = d_k - u_k
                 self.w += self.taxa_aprendizagem * e_k * x_k
 
-            eqm_ant = eqm
+            eqm_anterior = eqm_atual
             epoca += 1
 
         if self.plot:
             plt.figure()
-            plt.plot(hist_eqm)
+            plt.plot(historico_eqm)
             plt.xlabel("Épocas")
             plt.ylabel("Erro Quadrático Médio (EQM)")
             plt.title("Curva de Aprendizado - ADALINE")
@@ -60,6 +60,9 @@ class Adaline:
 
 
 def main():
+    # Semente para reprodutibilidade
+    np.random.seed(42)
+
     # Carregar e limpar dados
     dados = np.loadtxt("aerogerador.dat")
     dados = dados[~np.all(dados == 0, axis=1)]  # remove linhas com 0, 0
@@ -67,7 +70,7 @@ def main():
     X = dados[:, 0].reshape(-1, 1)
     y = dados[:, 1].reshape(-1, 1)
 
-    # Visualização inicial
+    # Gráfico de dispersão
     plt.figure()
     plt.scatter(X, y, s=10, alpha=0.5)
     plt.xlabel("Velocidade do Vento")
@@ -78,10 +81,12 @@ def main():
     plt.show()
 
     # Normalização Z-score
-    X_norm = (X - X.mean()) / X.std()
-    y_norm = (y - y.mean()) / y.std()
+    X_mean, X_std = X.mean(), X.std()
+    y_mean, y_std = y.mean(), y.std()
+    X_norm = (X - X_mean) / X_std
+    y_norm = (y - y_mean) / y_std
 
-    X_norm_T = X_norm.T  # formato p x N
+    X_norm_T = X_norm.T
     y_norm_flat = y_norm.flatten()
 
     # Parâmetros
@@ -111,10 +116,10 @@ def main():
 
     # Resultados
     print("\nResultados do ADALINE (Regressão - 250 rodadas):")
-    print(f"Média do MSE:          {np.mean(mses):.6f}")
-    print(f"Desvio Padrão do MSE: {np.std(mses):.6f}")
-    print(f"Maior MSE:             {np.max(mses):.6f}")
-    print(f"Menor MSE:             {np.min(mses):.6f}")
+    print(f"Média do MSE:          {np.mean(mses):.4f}")
+    print(f"Desvio Padrão do MSE: {np.std(mses):.4f}")
+    print(f"Maior MSE:             {np.max(mses):.4f}")
+    print(f"Menor MSE:             {np.min(mses):.4f}")
 
 if __name__ == "__main__":
     main()
