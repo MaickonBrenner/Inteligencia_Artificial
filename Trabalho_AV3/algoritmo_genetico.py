@@ -20,7 +20,7 @@ class GeneticAlgorithm:
         self.populacao = [np.random.permutation(self.pontos) for i in range(self.tamanho_populacao)]
 
         self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, projection='3d')  # Gráfico em 3D
+        self.ax = self.fig.add_subplot(111, projection='3d')
         self.linhas = []
         self.ax.scatter(self.coordenadas[:,0], self.coordenadas[:,1], self.coordenadas[:,2], c='r', marker='o')
         self.plot_rota()
